@@ -2,35 +2,18 @@ package configit
 
 import (
 	"context"
-	"github.com/go-git/go-git/v5"
-	"time"
+	"fmt"
+)
+
+var (
+	ErrSyncTimeout   = fmt.Errorf("sync timeout")
+	ErrInvalidConfig = fmt.Errorf("invalid config")
 )
 
 type Client interface {
+	Load(ctx context.Context) (Config, error)
 }
 
-type GithubClientConfig struct {
+type Config interface {
+	Field(ctx context.Context, path string, target interface{}) error
 }
-
-func NewGithubClient(ctx context.Context, conf *GithubClientConfig) (Client, error) {
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
-	)
-	tc := oauth2.NewClient(ctx, ts)
-
-	client := git.NewClient(tc)
-
-	content := make(chan []byte)
-	duration := time.Minute * 5 // 5 minutes
-
-	go syncRepoToMemory(client, owner, repo, content, duration)
-
-	for {
-		select {
-		case latestContent := <-content:
-			// Use the latest content in your application
-		}
-	}
-}
-
-
